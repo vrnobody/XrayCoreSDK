@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "XrayCoreSDK": {
+      "commandName": "Project",
+      "commandLineArgs": "Xray-core"
+    }
+  }
+}
