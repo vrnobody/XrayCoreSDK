@@ -65,24 +65,26 @@ namespace XrayCoreSDK {
         ///
         ///namespace Xray
         ///{
-        ///    public static partial class Utils
+        ///    public static class Extensions
         ///    {
-        ///        public static Common.Serial.TypedMessage ToTypedMessage&lt;T&gt;(T message)
-        ///            where T : IMessage&lt;T&gt;
+        ///        public static string GetMessageTypeName(this IMessage message)
         ///        {
-        ///            if (message == null)
-        ///            {
-        ///                throw new ArgumentNullException(&quot;Message is null!&quot;);
-        ///            }
-        ///
         ///            var ps = message.GetType()?.FullName?.Split(&quot;.&quot;);
         ///            if (ps == null || ps.Length &lt; 1)
         ///            {
-        ///                throw new ArgumentNullException(&quot;Mess [字符串的其余部分被截断]&quot;; 的本地化字符串。
+        ///                throw new ArgumentNullException(&quot;Message type is null!&quot;);
+        ///            }
+        ///
+        ///            for (int i = 0; i &lt; ps.Length - 1; i++)
+        ///            {
+        ///                ps[i] = ps[i].ToLower();
+        ///            }
+        ///
+        ///            retur [字符串的其余部分被截断]&quot;; 的本地化字符串。
         /// </summary>
-        internal static string Utils {
+        internal static string Extensions {
             get {
-                return ResourceManager.GetString("Utils", resourceCulture);
+                return ResourceManager.GetString("Extensions", resourceCulture);
             }
         }
     }

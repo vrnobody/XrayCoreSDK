@@ -2,10 +2,9 @@ using Google.Protobuf;
 
 namespace Xray
 {
-    public static partial class Utils
+    public static class Extensions
     {
-        public static string GetMessageTypeName<T>(T message)
-            where T : IMessage<T>
+        public static string GetMessageTypeName(this IMessage message)
         {
             var ps = message.GetType()?.FullName?.Split(".");
             if (ps == null || ps.Length < 1)
@@ -21,13 +20,9 @@ namespace Xray
             return string.Join(".", ps);
         }
 
-        public static Common.Serial.TypedMessage ToTypedMessage<T>(T message)
-            where T : IMessage<T>
+        public static Common.Serial.TypedMessage ToTypedMessage(this IMessage message)
         {
-            if (message == null)
-            {
-                throw new ArgumentNullException("Message is null!");
-            }
+            ArgumentNullException.ThrowIfNull(message);
 
             return new Common.Serial.TypedMessage()
             {

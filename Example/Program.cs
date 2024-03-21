@@ -1,4 +1,5 @@
 ﻿using Grpc.Net.Client;
+using Xray;
 
 namespace Example
 {
@@ -26,17 +27,15 @@ namespace Example
             Console.WriteLine($"response: {resp}");
         }
 
-        private static Xray.Common.Serial.TypedMessage CreateVlessSettings()
+        static Xray.Common.Serial.TypedMessage CreateVlessSettings()
         {
             var user = new Xray.Common.Protocol.User()
             {
-                Account = Xray.Utils.ToTypedMessage(
-                    new Xray.Proxy.Vless.Account()
-                    {
-                        Encryption = "none",
-                        Id = Guid.NewGuid().ToString(),
-                    }
-                ),
+                Account = new Xray.Proxy.Vless.Account()
+                {
+                    Encryption = "none",
+                    Id = Guid.NewGuid().ToString(),
+                }.ToTypedMessage(),
             };
 
             var serv = new Xray.Common.Protocol.ServerEndpoint()
@@ -49,33 +48,37 @@ namespace Example
             var vless = new Xray.Proxy.Vless.Outbound.Config();
             vless.Vnext.Add(serv);
 
-            return Xray.Utils.ToTypedMessage(vless);
+            return vless.ToTypedMessage();
         }
 
         static Xray.Common.Serial.TypedMessage CreateStreamSettings()
         {
+            var transport = "tcp";
+
             var tcp = new Xray.Transport.Internet.TransportConfig()
             {
-                ProtocolName = "tcp",
-                Settings = Xray.Utils.ToTypedMessage(new Xray.Transport.Internet.Tcp.Config()),
+                ProtocolName = transport,
+                Settings = new Xray.Transport.Internet.Tcp.Config().ToTypedMessage(),
             };
 
-            var reality = Xray.Utils.ToTypedMessage(
-                new Xray.Transport.Internet.Reality.Config() { ServerName = "bing.com", }
-            );
+            var reality = new Xray.Transport.Internet.Reality.Config()
+            {
+                ServerName = "bing.com",
+            }.ToTypedMessage();
 
             var stream = new Xray.Transport.Internet.StreamConfig()
             {
-                ProtocolName = "tcp",
-                SecurityType = Xray.Utils.GetMessageTypeName(reality),
+                ProtocolName = transport,
+                SecurityType = reality.GetMessageTypeName(),
             };
 
             stream.TransportSettings.Add(tcp);
             stream.SecuritySettings.Add(reality);
 
-            return Xray.Utils.ToTypedMessage(
-                new Xray.App.Proxyman.SenderConfig() { StreamSettings = stream, }
-            );
+            return new Xray.App.Proxyman.SenderConfig()
+            {
+                StreamSettings = stream,
+            }.ToTypedMessage();
         }
     }
 }

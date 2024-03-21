@@ -20,10 +20,6 @@
             }
 
             var compiler = CreateComplier(src);
-            if (compiler == null)
-            {
-                return;
-            }
 
             var sdk = Path.Combine(cwd, "sdk");
             if (Directory.Exists(sdk))
@@ -35,6 +31,7 @@
 
             var success = 0;
             var failed = 0;
+            var errors = 0;
 
             var protos = Directory.GetFiles(src, "*.proto", SearchOption.AllDirectories);
             foreach (var proto in protos)
@@ -60,34 +57,32 @@
                 }
                 else
                 {
+                    errors++;
                     Log($"error: dest is empty");
                 }
             }
-            var code = Path.Combine("sdk", "Utils.cs");
-            File.WriteAllText(code, Codes.Utils);
-            Log($"total: {success + failed} success: {success} failed: {failed}");
+            var extensions = Path.Combine("sdk", "Extensions.cs");
+            File.WriteAllText(extensions, Codes.Extensions);
+            Log($"error: {errors} protos: {success + failed} success: {success} failed: {failed}");
             Log("done");
         }
 
-        private static Compiler? CreateComplier(string include)
+        private static Compiler CreateComplier(string include)
         {
-            var profile = Environment.GetEnvironmentVariable("UserProfile");
-            if (profile == null)
-            {
-                Log("get user profile failed");
-                return null;
-            }
+            var profile =
+                Environment.GetEnvironmentVariable("UserProfile")
+                ?? throw new Exception("get user profile failed");
+
             var protoc = GenPath(profile, "protoc.exe");
             if (!File.Exists(protoc))
             {
-                Log("protoc.exe not found");
-                return null;
+                throw new Exception("protoc.exe not found");
             }
+
             var plugin = GenPath(profile, "grpc_csharp_plugin.exe");
             if (!File.Exists(plugin))
             {
-                Log("protoc.exe not found");
-                return null;
+                throw new Exception("protoc.exe not found");
             }
 
             return new Compiler(protoc, plugin, include);
@@ -126,11 +121,11 @@
             this.include = include;
         }
 
-        public bool Compile(string src, string target)
+        public bool Compile(string src, string dest)
         {
-            if (!Directory.Exists(target))
+            if (!Directory.Exists(dest))
             {
-                Directory.CreateDirectory(target);
+                Directory.CreateDirectory(dest);
             }
 
             var process = new System.Diagnostics.Process();
@@ -138,7 +133,7 @@
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo.FileName = protoc;
             startInfo.Arguments =
-                $"--csharp_out {target} --grpc_out {target} --plugin=protoc-gen-grpc={plugin} -I {include}";
+                $"--csharp_out {dest} --grpc_out {dest} --plugin=protoc-gen-grpc={plugin} -I {include}";
             startInfo.Arguments += $" {src}";
             process.StartInfo = startInfo;
             process.Start();
